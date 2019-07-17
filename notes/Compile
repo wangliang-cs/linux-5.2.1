@@ -1,0 +1,17 @@
+Attempts to compile the kernel for x86 32bit on a x86_64 machine with Debian
+
+
+# install the necessary tools
+apt-get install fakeroot ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison
+
+# configure, copy the current machine's configuration file
+# my machine uses the x86 64bit configuration
+cp /boot/config-$(uname -r) .config
+make menuconfig
+
+# or use the default configuration
+
+
+# compile the kernel by:
+make
+
