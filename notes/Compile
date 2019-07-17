@@ -6,12 +6,18 @@ apt-get install fakeroot ncurses-dev xz-utils libssl-dev bc flex libelf-dev biso
 
 # configure, copy the current machine's configuration file
 # my machine uses the x86 64bit configuration
-cp /boot/config-$(uname -r) .config
-make menuconfig
+
+#cp /boot/config-$(uname -r) .config
+#make menuconfig
 
 # or use the default configuration
 
+make defconfig
 
 # compile the kernel by:
 make
 
+# what we get after the build
+
+vmlinux - the executable binary, can be used like gdb vmlinux when debugging using qemu
+arch/xxx/boot/bzImage - the kernel image, can be loaded to qemu
