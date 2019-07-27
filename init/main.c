@@ -552,17 +552,33 @@ void __init __weak arch_call_rest_init(void)
 	rest_init();
 }
 
+// start kernel!
 asmlinkage __visible void __init start_kernel(void)
 {
 	char *command_line;
 	char *after_dashes;
 
 	wl_printk("start_kernel()");
+	
+	
+	// * type of init_task, task_struct, one of the most important struct in Linux, i.e., the process descriptor
+    //   task_struct is defined in include/linux/sched.h
+	// * init_task defined in init/init_task.c
+	// * function defined in kernel/fork.c just does what the function name indicates
+	set_task_stack_end_magic(&init_task); 
+	// about init_task
+	// https://blog.csdn.net/shenjiang11/article/details/62883965
+	// https://blog.csdn.net/gatieme/article/details/51484562
 
-	set_task_stack_end_magic(&init_task);
+	// Symmetric Multi-Processor
+	// https://www.cnblogs.com/yjf512/p/5999532.html
+	// not defined for x86
 	smp_setup_processor_id();
+
+	// for debugging
 	debug_objects_early_init();
 
+	
 	cgroup_init_early();
 
 	local_irq_disable();

@@ -836,7 +836,12 @@ void set_task_stack_end_magic(struct task_struct *tsk)
 {
 	unsigned long *stackend;
 
+
 	stackend = end_of_stack(tsk);
+
+	// defined in include/uapi/linux/magic.h
+	// #define STACK_END_MAGIC		0x57AC6E9D
+
 	*stackend = STACK_END_MAGIC;	/* for overflow detection */
 }
 
