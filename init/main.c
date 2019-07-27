@@ -12,6 +12,7 @@
 
 #define DEBUG		/* Enable initcall_debug */
 
+#include <wl_debug.h>
 #include <linux/types.h>
 #include <linux/extable.h>
 #include <linux/module.h>
@@ -408,6 +409,8 @@ noinline void __ref rest_init(void)
 	struct task_struct *tsk;
 	int pid;
 
+	wl_printk("at the start of rest_init()");
+
 	rcu_scheduler_starting();
 	/*
 	 * We need to spawn init first so that it obtains pid 1, however
@@ -447,6 +450,7 @@ noinline void __ref rest_init(void)
 	 * at least once to get things moving:
 	 */
 	schedule_preempt_disabled();
+	wl_printk("at the end of rest_init()");
 	/* Call into cpu_idle with preempt disabled */
 	cpu_startup_entry(CPUHP_ONLINE);
 }
@@ -552,6 +556,8 @@ asmlinkage __visible void __init start_kernel(void)
 {
 	char *command_line;
 	char *after_dashes;
+
+	wl_printk("start_kernel()");
 
 	set_task_stack_end_magic(&init_task);
 	smp_setup_processor_id();
@@ -756,6 +762,8 @@ asmlinkage __visible void __init start_kernel(void)
 	acpi_subsystem_init();
 	arch_post_acpi_subsys_init();
 	sfi_init_late();
+	
+	wl_printk("at the end of start_kernel()");
 
 	/* Do the rest non-__init'ed, we're now alive */
 	arch_call_rest_init();
@@ -1198,4 +1206,19 @@ static noinline void __init kernel_init_freeable(void)
 	 */
 
 	integrity_load_keys();
+}
+
+// this function does nothing but to mark a break point for GDB
+void wl_break_point(void) 
+{
+	printk("hit wl_break_point!\n");
+}
+
+void wl_printk(const char* msg) {
+#ifdef WL_DEBUG
+	printk("\n\n#####################################");
+	printk("%s\n", msg);
+	printk("#####################################\n\n");
+	wl_break_point();
+#endif
 }

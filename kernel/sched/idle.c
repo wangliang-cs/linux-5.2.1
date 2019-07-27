@@ -7,7 +7,7 @@
  *        tasks which are handled in sched/fair.c )
  */
 #include "sched.h"
-
+#include "wl_debug.h"
 #include <trace/events/power.h>
 
 /* Linker adds these: start and end of __cpuidle functions */
@@ -234,6 +234,8 @@ static void do_idle(void)
 	 * reschedule.
 	 */
 
+	// wl_printk("inside do_idle() it just loops");
+
 	__current_set_polling();
 	tick_nohz_idle_enter();
 
@@ -348,6 +350,7 @@ EXPORT_SYMBOL_GPL(play_idle);
 
 void cpu_startup_entry(enum cpuhp_state state)
 {
+	wl_printk("at the start of cpu_startup_entry() just put the cpu into idle");
 	arch_cpu_idle_prepare();
 	cpuhp_online_idle(state);
 	while (1)
