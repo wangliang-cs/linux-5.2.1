@@ -38,6 +38,8 @@
 
 #include "smpboot.h"
 
+#include "wl_debug.h"
+
 /**
  * cpuhp_cpu_state - Per cpu hotplug state storage
  * @state:	The current cpu state
@@ -2309,6 +2311,7 @@ void init_cpu_online(const struct cpumask *src)
 void __init boot_cpu_init(void)
 {
 	int cpu = smp_processor_id();
+	wl_printk("boot_cpu_init cpu=%x", cpu);
 
 	/* Mark the boot cpu "present", "online" etc for SMP and UP case */
 	set_cpu_online(cpu, true);

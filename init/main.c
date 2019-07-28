@@ -565,6 +565,7 @@ asmlinkage __visible void __init start_kernel(void)
     //   task_struct is defined in include/linux/sched.h
 	// * init_task defined in init/init_task.c
 	// * function defined in kernel/fork.c just does what the function name indicates
+	// people say that init_task is the template for any process comes later, and we are currently in the context of init_task, need to verify that
 	set_task_stack_end_magic(&init_task); 
 	// about init_task
 	// https://blog.csdn.net/shenjiang11/article/details/62883965
@@ -573,21 +574,37 @@ asmlinkage __visible void __init start_kernel(void)
 	// Symmetric Multi-Processor
 	// https://www.cnblogs.com/yjf512/p/5999532.html
 	// not defined for x86
+	// after I've check with objdump, yes, it's a dummy function
 	smp_setup_processor_id();
 
 	// for debugging
 	debug_objects_early_init();
 
 	
+	// defined in kernel/cgroup/cgroup.c
+	/**
+	 * cgroup_init_early - cgroup initialization at system boot
+	 *
+	 * Initialize cgroups at system boot, and initialize any
+	 * subsystems that request early init.
+	 */
+
+	// as presented in https://blog.csdn.net/u011370207/article/details/80235698, cgroup is a mechanism that controls the total resource that can be used by a group of tasks
 	cgroup_init_early();
 
+	// defined in include/linux/irqflags.h
+	// -> include/asm/irqflags.h and -> cli
+	// I believe the initial idt is set in x86/.../head_32.S which should be verified later
 	local_irq_disable();
-	early_boot_irqs_disabled = true;
+	early_boot_irqs_disabled = true; // just set the flag
 
 	/*
 	 * Interrupts are still disabled. Do necessary setups, then
 	 * enable them.
 	 */
+
+	// defined in kernel/cpu.c
+	// Activate the first processor with int cpu = 0xc1c81f70 ???
 	boot_cpu_init();
 	page_address_init();
 	pr_notice("%s", linux_banner);
@@ -691,13 +708,17 @@ asmlinkage __visible void __init start_kernel(void)
 	boot_init_stack_canary();
 
 	time_init();
+	wl_printk("before printk_safe_init()");
 	printk_safe_init();
+	wl_printk("after printk_safe_init()");
 	perf_event_init();
 	profile_init();
 	call_function_init();
 	WARN(!irqs_disabled(), "Interrupts were enabled early\n");
 
 	early_boot_irqs_disabled = false;
+
+	// defined in include/linux/irqflags.h
 	local_irq_enable();
 
 	kmem_cache_init_late();
@@ -707,10 +728,11 @@ asmlinkage __visible void __init start_kernel(void)
 	 * we've done PCI setups etc, and console_init() must be aware of
 	 * this. But we do want output early, in case something goes wrong.
 	 */
-	console_init();
+	console_init(); // until this is done we can see the printk output on the console, yeah!
 	if (panic_later)
 		panic("Too many boot %s vars at `%s'", panic_later,
 		      panic_param);
+	wl_printk("after console_init()");
 
 	lockdep_init();
 
@@ -1230,11 +1252,14 @@ void wl_break_point(void)
 	printk("hit wl_break_point!\n");
 }
 
-void wl_printk(const char* msg) {
+void wl_printk(const char* msg, ...) {
 #ifdef WL_DEBUG
+	va_list args;
 	printk("\n\n#####################################");
-	printk("%s\n", msg);
-	printk("#####################################\n\n");
+	va_start(args, msg);
+	printk(msg, args);
+	va_end(args);
+	printk("\n#####################################\n\n");
 	wl_break_point();
 #endif
 }

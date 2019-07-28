@@ -7,6 +7,6 @@
 
 // this function does nothing but to mark a break point for GDB
 void wl_break_point(void);
-void wl_printk(const char* msg);
+void wl_printk(const char* msg, ...);
 
 #endif
