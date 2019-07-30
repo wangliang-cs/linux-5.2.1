@@ -736,13 +736,20 @@ asmlinkage __visible void __init start_kernel(void)
 
 	context_tracking_init();
 	/* init some links before init_ISA_irqs() */
-	// defined in arch/x86/kernel/apic/vector.c early_irq_init
+
+	// kernel/irq/irqdesc.c early_irq_init() and goes to
+	// arch/x86/kernel/apic/vector.c arch_early_irq_init()
 	early_irq_init();
+
+	// defined in arch/x86/kernel/irqinit.c
 	init_IRQ();
 	tick_init();
 	rcu_init_nohz();
 	init_timers();
 	hrtimers_init();
+
+	// defined in kernel/softirq.c
+	// what does the idt look like?
 	softirq_init();
 	timekeeping_init();
 
@@ -768,7 +775,7 @@ asmlinkage __visible void __init start_kernel(void)
 
 	early_boot_irqs_disabled = false;
 
-	// defined in include/linux/irqflags.h
+	// defined in include/linux/irqflags.h -> arch/x86/include/asm/irqflags.h 'sti'
 	local_irq_enable();
 
 	kmem_cache_init_late();

@@ -514,9 +514,9 @@ int __init early_irq_init(void)
 	init_irq_default_affinity();
 
 	/* Let arch update nr_irqs and return the nr of preallocated irqs */
-	initcnt = arch_probe_nr_irqs();
+	initcnt = arch_probe_nr_irqs(); // equal to nr_legacy_irqs() in arch/x86/kernel/irqint.c?
 	printk(KERN_INFO "NR_IRQS: %d, nr_irqs: %d, preallocated irqs: %d\n",
-	       NR_IRQS, nr_irqs, initcnt);
+	       NR_IRQS, nr_irqs, initcnt); // 2304, 256, 16
 
 	if (WARN_ON(nr_irqs > IRQ_BITMAP_BITS))
 		nr_irqs = IRQ_BITMAP_BITS;

@@ -28,6 +28,8 @@
 #include <asm/traps.h>
 #include <asm/prom.h>
 
+#include <wl_debug.h>
+
 /*
  * ISA PIC or low IO-APIC triggered (INTA-cycle or APIC) interrupts:
  * (these are usually mapped to vectors 0x30-0x3f)
@@ -72,7 +74,7 @@ void __init init_ISA_irqs(void)
 
 	legacy_pic->init(0);
 
-	for (i = 0; i < nr_legacy_irqs(); i++)
+	for (i = 0; i < nr_legacy_irqs(); i++) // 16
 		irq_set_chip_and_handler(i, chip, handle_level_irq);
 }
 
@@ -88,20 +90,41 @@ void __init init_IRQ(void)
 	 * then this vector space can be freed and re-used dynamically as the
 	 * irq's migrate etc.
 	 */
-	for (i = 0; i < nr_legacy_irqs(); i++)
+	for (i = 0; i < nr_legacy_irqs(); i++) // nr_legacy_irqs() = 16
 		per_cpu(vector_irq, 0)[ISA_IRQ_VECTOR(i)] = irq_to_desc(i);
+	wl_printk("in arch/x86/kernel/irqinit.c init_IRQ()\nnr_legacy_irqs() = %d", nr_legacy_irqs());
 
 	BUG_ON(irq_init_percpu_irqstack(smp_processor_id()));
 
+	// x86_init = x86_init_ops defined in arch/x86/include/asm/x86_int.h
+	// x86_init.irqs = x86_init_irqs
+		/**
+ 		* struct x86_init_irqs - platform specific interrupt setup
+		 * @pre_vector_init:		init code to run before interrupt vectors
+		 *				are set up.
+		 * @intr_init:			interrupt init code
+		 * @trap_init:			platform specific trap setup
+		 * @intr_mode_init:		interrupt delivery mode setup
+		 */
+		/* struct x86_init_irqs {
+    			void (*pre_vector_init)(void);
+				void (*intr_init)(void);
+				void (*trap_init)(void);
+				void (*intr_mode_init)(void);
+			};*/
 	x86_init.irqs.intr_init();
+
+	// intr_init		= native_init_IRQ in arch/x86/kernel/x86_init.c, the later is defined below
 }
 
 void __init native_init_IRQ(void)
 {
 	/* Execute any quirks before the call gates are initialised: */
-	x86_init.irqs.pre_vector_init();
+	x86_init.irqs.pre_vector_init(); // to init_ISA_irqs() in this file
 
+	// defined in arch/x86/kernel/idt.c
 	idt_setup_apic_and_irq_gates();
+	// defined in arch/x86/kernel/apic/vector.c
 	lapic_assign_system_vectors();
 
 	if (!acpi_ioapic && !of_ioapic && nr_legacy_irqs())

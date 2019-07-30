@@ -21,6 +21,8 @@
 #include <asm/apic.h>
 #include <asm/irq_remapping.h>
 
+#include <wl_debug.h>
+
 static struct irq_domain *msi_default_domain;
 
 static void irq_msi_compose_msg(struct irq_data *data, struct msi_msg *msg)
@@ -81,6 +83,7 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 
 void native_teardown_msi_irq(unsigned int irq)
 {
+	wl_printk("arch/x86/kernel/apic/msi.c native_teardown_msi_irq()");
 	irq_domain_free_irqs(irq, 1);
 }
 

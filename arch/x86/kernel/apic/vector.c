@@ -687,7 +687,7 @@ void __init lapic_assign_system_vectors(void)
 int __init arch_early_irq_init(void)
 {
 	struct fwnode_handle *fn;
-	wl_printk("arch/x86/kernel/apic/vector.c early_irq_init");
+	wl_printk("arch/x86/kernel/apic/vector.c arch_early_irq_init");
 	fn = irq_domain_alloc_named_fwnode("VECTOR");
 	BUG_ON(!fn);
 	x86_vector_domain = irq_domain_create_tree(fn, &x86_vector_domain_ops,

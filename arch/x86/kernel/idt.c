@@ -8,6 +8,7 @@
 #include <asm/proto.h>
 #include <asm/desc.h>
 #include <asm/hw_irq.h>
+#include <wl_debug.h>
 
 struct idt_data {
 	unsigned int	vector;
@@ -306,10 +307,12 @@ void __init idt_setup_debugidt_traps(void)
  */
 void __init idt_setup_apic_and_irq_gates(void)
 {
-	int i = FIRST_EXTERNAL_VECTOR;
+	int i = FIRST_EXTERNAL_VECTOR; // = 32
 	void *entry;
 
-	idt_setup_from_table(idt_table, apic_idts, ARRAY_SIZE(apic_idts), true);
+	wl_printk("arch/x86/kernel/idt.c idt_setup_apic_and_irq_gates() FIRST_EXTERNAL_VECTOR = %d", FIRST_EXTERNAL_VECTOR);
+
+	idt_setup_from_table(idt_table, apic_idts, ARRAY_SIZE(apic_idts), true); // a very small idt
 
 	for_each_clear_bit_from(i, system_vectors, FIRST_SYSTEM_VECTOR) {
 		entry = irq_entries_start + 8 * (i - FIRST_EXTERNAL_VECTOR);
