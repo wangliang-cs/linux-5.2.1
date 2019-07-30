@@ -2,7 +2,7 @@
 #include <asm/smp.h>
 
 #include <xen/events.h>
-
+#include <wl_debug.h>
 #include "xen-ops.h"
 #include "smp.h"
 
@@ -11,7 +11,7 @@ static void __init xen_hvm_smp_prepare_boot_cpu(void)
 {
 	BUG_ON(smp_processor_id() != 0);
 	native_smp_prepare_boot_cpu();
-
+	wl_printk("xen_hvm_smp_prepare_boot_cpu");
 	/*
 	 * Setup vcpu_info for boot CPU. Secondary CPUs get their vcpu_info
 	 * in xen_cpu_up_prepare_hvm().

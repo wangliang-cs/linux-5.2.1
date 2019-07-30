@@ -34,6 +34,8 @@
 #include <asm/hypervisor.h>
 #include <asm/tlb.h>
 
+#include <wl_debug.h>
+
 static int kvmapf = 1;
 
 static int __init parse_no_kvmapf(char *arg)
@@ -536,6 +538,8 @@ static void __init kvm_smp_prepare_cpus(unsigned int max_cpus)
 
 static void __init kvm_smp_prepare_boot_cpu(void)
 {
+
+	wl_printk("kvm_smp_prepare_boot_cpu");
 	/*
 	 * Map the per-cpu variables as decrypted before kvm_guest_cpu_init()
 	 * shares the guest physical address with the hypervisor.

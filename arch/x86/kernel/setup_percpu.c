@@ -23,6 +23,8 @@
 #include <asm/cpu.h>
 #include <asm/stackprotector.h>
 
+#include <wl_debug.h>
+
 DEFINE_PER_CPU_READ_MOSTLY(int, cpu_number);
 EXPORT_PER_CPU_SYMBOL(cpu_number);
 
@@ -173,6 +175,8 @@ void __init setup_per_cpu_areas(void)
 
 	pr_info("NR_CPUS:%d nr_cpumask_bits:%d nr_cpu_ids:%u nr_node_ids:%u\n",
 		NR_CPUS, nr_cpumask_bits, nr_cpu_ids, nr_node_ids);
+
+	wl_printk("in arch/x86/kernel/setup_percpu.c");
 
 	/*
 	 * Allocate percpu area.  Embedding allocator is our favorite;

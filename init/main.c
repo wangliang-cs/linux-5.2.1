@@ -417,7 +417,10 @@ noinline void __ref rest_init(void)
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
+	wl_printk("create kernel_thread: kernel_init");
 	pid = kernel_thread(kernel_init, NULL, CLONE_FS);
+	pr_info("kernel_init pid = %d\n", pid);
+	wl_printk("kernel_init pid = %d", pid);
 	/*
 	 * Pin init on the boot CPU. Task migration is not properly working
 	 * until sched_init_smp() has been run. It will set the allowed
@@ -552,6 +555,27 @@ void __init __weak arch_call_rest_init(void)
 	rest_init();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // start kernel!
 asmlinkage __visible void __init start_kernel(void)
 {
@@ -604,25 +628,45 @@ asmlinkage __visible void __init start_kernel(void)
 	 */
 
 	// defined in kernel/cpu.c
-	// Activate the first processor with int cpu = 0xc1c81f70 ???
+	// Activate the first processor with int cpu = 0, this looks like normal
 	boot_cpu_init();
+
+	// defined in mm/highmem.c
+	// init the page_address_htable array
 	page_address_init();
 	pr_notice("%s", linux_banner);
+
+	// defined in arch/x86/kernel/setup.c
+	// architecture specific setup, does some really **HEAVY** work on the initializing.
 	setup_arch(&command_line);
+
+	// defined in include/linux/mm_types.h
+	/* Pointer magic because the dynamic array size confuses some compilers. */
+	// what is this? fighting compilers?
 	mm_init_cpumask(&init_mm);
+
+	// save boot command line
 	setup_command_line(command_line);
+
+	// maybe redundant, what does nr_cpu_ids mean?
 	setup_nr_cpu_ids();
+
+	// defined arch/x86/kernel/setup_percpu.c
+	// Allocate percpu area, what is this?
 	setup_per_cpu_areas();
+
+	// may be not very important?
 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
 	boot_cpu_hotplug_init();
 
+	// defined in mm/page_alloc.c
 	build_all_zonelists(NULL);
-	page_alloc_init();
+	page_alloc_init(); // cpuhp_setup_state_nocalls, related to paging?
 
 	pr_notice("Kernel command line: %s\n", boot_command_line);
 	/* parameters may set static keys */
-	jump_label_init();
-	parse_early_param();
+	jump_label_init(); // defined in kernel/jump_label.c
+	parse_early_param(); // defined here, parse kernel options, the logic is so confusing
 	after_dashes = parse_args("Booting kernel",
 				  static_command_line, __start___param,
 				  __stop___param - __start___param,
@@ -636,9 +680,16 @@ asmlinkage __visible void __init start_kernel(void)
 	 * kmem_cache_init()
 	 */
 	setup_log_buf(0);
-	vfs_caches_init_early();
+	// defined in fs/dcache.c
+	// init cache?
+	vfs_caches_init_early(); 
+
+
 	sort_main_extable();
+
+	// defined in arch/x86/kernel/traps.c
 	trap_init();
+	// defined here
 	mm_init();
 
 	ftrace_init();
@@ -685,6 +736,7 @@ asmlinkage __visible void __init start_kernel(void)
 
 	context_tracking_init();
 	/* init some links before init_ISA_irqs() */
+	// defined in arch/x86/kernel/apic/vector.c early_irq_init
 	early_irq_init();
 	init_IRQ();
 	tick_init();
@@ -708,9 +760,7 @@ asmlinkage __visible void __init start_kernel(void)
 	boot_init_stack_canary();
 
 	time_init();
-	wl_printk("before printk_safe_init()");
 	printk_safe_init();
-	wl_printk("after printk_safe_init()");
 	perf_event_init();
 	profile_init();
 	call_function_init();
@@ -1067,6 +1117,7 @@ static void __init do_pre_smp_initcalls(void)
 static int run_init_process(const char *init_filename)
 {
 	argv_init[0] = init_filename;
+	// actually, /sbin/modprobe is executed much earlier
 	pr_info("Run %s as init process\n", init_filename);
 	return do_execve(getname_kernel(init_filename),
 		(const char __user *const __user *)argv_init,
@@ -1076,7 +1127,7 @@ static int run_init_process(const char *init_filename)
 static int try_to_run_init_process(const char *init_filename)
 {
 	int ret;
-
+	wl_printk("try_to_run_init_process %s as init process\n", init_filename);
 	ret = run_init_process(init_filename);
 
 	if (ret && ret != -ENOENT) {
@@ -1130,7 +1181,8 @@ static int __ref kernel_init(void *unused)
 {
 	int ret;
 
-	kernel_init_freeable();
+	wl_printk("inside kernel_init");
+	kernel_init_freeable(); // ramdisk_execute_command = "/init";
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
 	ftrace_free_init_mem();
@@ -1148,7 +1200,9 @@ static int __ref kernel_init(void *unused)
 
 	rcu_end_inkernel_boot();
 
-	if (ramdisk_execute_command) {
+	if (ramdisk_execute_command) { // which is '/init'
+		pr_info("ramdisk_execute_command: %s\n", ramdisk_execute_command);
+		wl_printk("run_init_process(ramdisk_execute_command)");
 		ret = run_init_process(ramdisk_execute_command);
 		if (!ret)
 			return 0;
@@ -1164,8 +1218,12 @@ static int __ref kernel_init(void *unused)
 	 */
 	if (execute_command) {
 		ret = run_init_process(execute_command);
-		if (!ret)
+		// never reach here
+		wl_printk("kernel_init returns after run_init_process(execute_command)");
+		if (!ret) {
+			// never reached here
 			return 0;
+		}
 		panic("Requested init %s failed (error %d).",
 		      execute_command, ret);
 	}
@@ -1252,14 +1310,16 @@ void wl_break_point(void)
 	printk("hit wl_break_point!\n");
 }
 
+/*
 void wl_printk(const char* msg, ...) {
 #ifdef WL_DEBUG
 	va_list args;
-	printk("\n\n#####################################");
 	va_start(args, msg);
+	printk("\n\n#####################################");
 	printk(msg, args);
 	va_end(args);
 	printk("\n#####################################\n\n");
 	wl_break_point();
 #endif
 }
+*/

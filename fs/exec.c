@@ -73,6 +73,8 @@
 
 #include <trace/events/sched.h>
 
+#include <wl_debug.h>
+
 int suid_dumpable = 0;
 
 static LIST_HEAD(formats);
@@ -1876,12 +1878,16 @@ int do_execve_file(struct file *file, void *__argv, void *__envp)
 	return __do_execve_file(AT_FDCWD, NULL, argv, envp, 0, file);
 }
 
+
+// struct file name defined in include/linux/fs.h
 int do_execve(struct filename *filename,
 	const char __user *const __user *__argv,
 	const char __user *const __user *__envp)
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
+	// pr_info("do_execve \n\t%s\n\t%s\n\t%s", filename->name, __argv, __envp);
+	// wl_printk("do_execve");
 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
 }
 

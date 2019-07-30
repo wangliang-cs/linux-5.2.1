@@ -18,6 +18,7 @@
 #include <linux/sysfs.h>
 
 #include "internals.h"
+#include <wl_debug.h>
 
 /*
  * lockdep: we want to handle all irq_desc locks as a single lock-class:
@@ -507,6 +508,8 @@ int __init early_irq_init(void)
 {
 	int i, initcnt, node = first_online_node;
 	struct irq_desc *desc;
+
+	wl_printk("kernel/irq/irqdesc.c early_irq_init");
 
 	init_irq_default_affinity();
 

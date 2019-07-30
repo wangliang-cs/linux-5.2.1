@@ -72,6 +72,8 @@
 #include <asm/proto.h>
 #endif
 
+#include <wl_debug.h>
+
 DECLARE_BITMAP(system_vectors, NR_VECTORS);
 
 static inline void cond_local_irq_enable(struct pt_regs *regs)
@@ -928,6 +930,8 @@ dotraplinkage void do_iret_error(struct pt_regs *regs, long error_code)
 
 void __init trap_init(void)
 {
+
+	wl_printk("arch/x86/kernel/traps.c trap_init");
 	/* Init cpu_entry_area before IST entries are set up */
 	setup_cpu_entry_areas();
 

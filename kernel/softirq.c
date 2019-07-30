@@ -29,6 +29,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/irq.h>
 
+#include <wl_debug.h>
+
 /*
    - No shared variables, all the data are CPU local.
    - If a softirq needs serialization, let it serialize itself
@@ -694,6 +696,7 @@ early_initcall(spawn_ksoftirqd);
 
 int __init __weak early_irq_init(void)
 {
+	wl_printk("kernel/softirq.c early_irq_init");
 	return 0;
 }
 

@@ -7,6 +7,10 @@
 
 // this function does nothing but to mark a break point for GDB
 void wl_break_point(void);
-void wl_printk(const char* msg, ...);
+#define wl_printk(fmt, ...) \
+	printk("\n#####################################"); \
+	printk(fmt, ##__VA_ARGS__); \
+	printk("#####################################\n"); \
+	wl_break_point();
 
 #endif
